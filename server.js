@@ -72,7 +72,10 @@ app.put("/api/site-content", requireAdmin, async (req, res) => {
     const safeData = {
       edits: data.edits && typeof data.edits === "object" ? data.edits : {},
       hiddenSections: Array.isArray(data.hiddenSections) ? data.hiddenSections.filter(x => typeof x === "string") : [],
-      customBlocks: Array.isArray(data.customBlocks) ? data.customBlocks.slice(0, 200) : [],\n      layouts: data.layouts && typeof data.layouts === "object" ? data.layouts : {},\n      imageOverrides: data.imageOverrides && typeof data.imageOverrides === "object" ? data.imageOverrides : {},\n      deletedElements: Array.isArray(data.deletedElements) ? data.deletedElements.filter(x => typeof x === "string") : []
+      customBlocks: Array.isArray(data.customBlocks) ? data.customBlocks.slice(0, 200) : [],
+      layouts: data.layouts && typeof data.layouts === "object" ? data.layouts : {},
+      imageOverrides: data.imageOverrides && typeof data.imageOverrides === "object" ? data.imageOverrides : {},
+      deletedElements: Array.isArray(data.deletedElements) ? data.deletedElements.filter(x => typeof x === "string") : []
     };
     const doc = await Content.findOneAndUpdate(
       { key: "main" }, { $set: { data: safeData, updatedAt: new Date() } },
