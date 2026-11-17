@@ -84,8 +84,8 @@ app.put("/api/site-content", requireAdmin, async (req, res) => {
 
 app.put("/api/site-content/edits", requireAdmin, async (req, res) => {
   try {
-    const incoming = req.body?.edits;
-    if (!incoming || typeof incoming !== "object" || Array.isArray(incoming)) return res.status(400).json({ error: "Invalid edits." });
+    const incoming = req.body?.edits || {};
+    if (typeof incoming !== "object" || Array.isArray(incoming)) return res.status(400).json({ error: "Invalid edits." });
     const doc = await Content.findOne({ key: "main" });
     const data = doc?.data || { edits: {}, hiddenSections: [], customBlocks: [] };
     data.edits = { ...(data.edits || {}), ...incoming };
