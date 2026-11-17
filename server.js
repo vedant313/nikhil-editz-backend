@@ -72,7 +72,7 @@ app.put("/api/site-content", requireAdmin, async (req, res) => {
     const safeData = {
       edits: data.edits && typeof data.edits === "object" ? data.edits : {},
       hiddenSections: Array.isArray(data.hiddenSections) ? data.hiddenSections.filter(x => typeof x === "string") : [],
-      customBlocks: Array.isArray(data.customBlocks) ? data.customBlocks.slice(0, 200) : []
+      customBlocks: Array.isArray(data.customBlocks) ? data.customBlocks.slice(0, 200) : [],\n      layouts: data.layouts && typeof data.layouts === "object" ? data.layouts : {},\n      imageOverrides: data.imageOverrides && typeof data.imageOverrides === "object" ? data.imageOverrides : {},\n      deletedElements: Array.isArray(data.deletedElements) ? data.deletedElements.filter(x => typeof x === "string") : []
     };
     const doc = await Content.findOneAndUpdate(
       { key: "main" }, { $set: { data: safeData, updatedAt: new Date() } },
@@ -89,6 +89,10 @@ app.put("/api/site-content/edits", requireAdmin, async (req, res) => {
     const doc = await Content.findOne({ key: "main" });
     const data = doc?.data || { edits: {}, hiddenSections: [], customBlocks: [] };
     data.edits = { ...(data.edits || {}), ...incoming };
+    const layouts = req.body?.layouts, imageOverrides = req.body?.imageOverrides, deletedElements = req.body?.deletedElements;
+    if (layouts && typeof layouts === "object" && !Array.isArray(layouts)) data.layouts = { ...(data.layouts || {}), ...layouts };
+    if (imageOverrides && typeof imageOverrides === "object" && !Array.isArray(imageOverrides)) data.imageOverrides = { ...(data.imageOverrides || {}), ...imageOverrides };
+    if (Array.isArray(deletedElements)) data.deletedElements = [...new Set(deletedElements.filter(x => typeof x === "string"))];
     await Content.findOneAndUpdate({ key: "main" }, { $set: { data, updatedAt: new Date() } }, { upsert: true, new: true });
     res.json({ ok: true });
   } catch (error) { res.status(500).json({ error: "Could not save text edits." }); }
