@@ -18,7 +18,7 @@ app.use(cors({
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"]
 }));
-app.use(express.json({ limit: "2mb" }));
+app.use(express.json({ limit: "2mb" }));\n// CMS content must always be fresh; browsers and proxies should not cache edits.\napp.use("/api/site-content", (_req, res, next) => { res.set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate"); res.set("Pragma", "no-cache"); res.set("Expires", "0"); next(); });
 
 const ContentSchema = new mongoose.Schema({
   key: { type: String, default: "main", unique: true },
@@ -72,7 +72,7 @@ app.put("/api/site-content", requireAdmin, async (req, res) => {
     const safeData = {
       edits: data.edits && typeof data.edits === "object" ? data.edits : {},
       hiddenSections: Array.isArray(data.hiddenSections) ? data.hiddenSections.filter(x => typeof x === "string") : [],
-      customBlocks: Array.isArray(data.customBlocks) ? data.customBlocks.slice(0, 200) : [],
+      customBlocks: Array.isArray(data.customBlocks) ? data.customBlocks.slice(0, 200) : [],\n      videoItems: Array.isArray(data.videoItems) ? data.videoItems.slice(0, 100).filter(v => v && typeof v.id === "string" && /^[A-Za-z0-9_-]{6,}$/.test(v.id)).map(v => ({ id: v.id, title: String(v.title || "Video").slice(0, 160), visible: v.visible !== false })) : [],
       layouts: data.layouts && typeof data.layouts === "object" ? data.layouts : {},
       imageOverrides: data.imageOverrides && typeof data.imageOverrides === "object" ? data.imageOverrides : {},
       deletedElements: Array.isArray(data.deletedElements) ? data.deletedElements.filter(x => typeof x === "string") : []
