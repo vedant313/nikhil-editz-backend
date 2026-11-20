@@ -18,7 +18,9 @@ app.use(cors({
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"]
 }));
-app.use(express.json({ limit: "2mb" }));\n// CMS content must always be fresh; browsers and proxies should not cache edits.\napp.use("/api/site-content", (_req, res, next) => { res.set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate"); res.set("Pragma", "no-cache"); res.set("Expires", "0"); next(); });
+app.use(express.json({ limit: "2mb" }));
+// CMS content must always be fresh; browsers and proxies should not cache edits.
+app.use("/api/site-content", (_req, res, next) => { res.set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate"); res.set("Pragma", "no-cache"); res.set("Expires", "0"); next(); });
 
 const ContentSchema = new mongoose.Schema({
   key: { type: String, default: "main", unique: true },
