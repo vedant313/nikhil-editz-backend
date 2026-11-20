@@ -16,7 +16,10 @@ const allowedOrigins = new Set([
 
 app.use(cors({
   origin(origin, callback) {
-    if (!origin || allowedOrigins.has(origin)) return callback(null, true);
+    // Preserve the original working behavior: when FRONTEND_ORIGINS is not
+    // configured, do not block the portfolio origin. Write routes remain protected
+    // by the admin JWT. When an allowlist is configured, enforce it strictly.
+    if (!origin || allowedOrigins.size === 0 || allowedOrigins.has(origin)) return callback(null, true);
     return callback(new Error("Origin not allowed by CORS"));
   },
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
