@@ -8,11 +8,15 @@ const rateLimit = require("express-rate-limit");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
-const allowedOrigins = (process.env.FRONTEND_ORIGINS || "").split(",").map(s => s.trim()).filter(Boolean);
+const allowedOrigins = new Set([
+  ...(process.env.FRONTEND_ORIGINS || "").split(",").map(value => value.trim()).filter(Boolean),
+  "https://nikhileditz.nexsatechnologies.com",
+  "https://nikhileditzportfolio.vercel.app"
+]);
 
 app.use(cors({
   origin(origin, callback) {
-    if (!origin || allowedOrigins.length === 0 || allowedOrigins.includes(origin)) return callback(null, true);
+    if (!origin || allowedOrigins.has(origin)) return callback(null, true);
     return callback(new Error("Origin not allowed by CORS"));
   },
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
