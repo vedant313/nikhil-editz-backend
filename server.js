@@ -8,8 +8,9 @@ const rateLimit = require("express-rate-limit");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+const configuredOrigins = (process.env.FRONTEND_ORIGINS || "").split(",").map(value => value.trim()).filter(Boolean);
 const allowedOrigins = new Set([
-  ...(process.env.FRONTEND_ORIGINS || "").split(",").map(value => value.trim()).filter(Boolean),
+  ...configuredOrigins,
   "https://nikhileditz.nexsatechnologies.com",
   "https://nikhileditzportfolio.vercel.app"
 ]);
@@ -19,7 +20,7 @@ app.use(cors({
     // Preserve the original working behavior: when FRONTEND_ORIGINS is not
     // configured, do not block the portfolio origin. Write routes remain protected
     // by the admin JWT. When an allowlist is configured, enforce it strictly.
-    if (!origin || allowedOrigins.size === 0 || allowedOrigins.has(origin)) return callback(null, true);
+    if (!origin || configuredOrigins.length === 0 || allowedOrigins.has(origin)) return callback(null, true);
     return callback(new Error("Origin not allowed by CORS"));
   },
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
