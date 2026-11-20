@@ -8,7 +8,7 @@ const rateLimit = require("express-rate-limit");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
-const normalizeOrigin = value => String(value || "").trim().replace(/\\/$/, "").toLowerCase();
+const normalizeOrigin = value => String(value || "").trim().replace(/\/$/, "").toLowerCase();
 const configuredOrigins = (process.env.FRONTEND_ORIGINS || "").split(",").map(normalizeOrigin).filter(Boolean);
 const allowedOrigins = new Set([
   ...configuredOrigins,
