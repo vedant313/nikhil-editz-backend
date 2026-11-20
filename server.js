@@ -24,7 +24,7 @@ app.use(cors({
     return callback(new Error("Origin not allowed by CORS"));
   },
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"]
+  allowedHeaders: ["Content-Type", "Authorization", "Cache-Control", "Pragma"]
 }));
 app.use(express.json({ limit: "2mb" }));
 // CMS content must always be fresh; browsers and proxies should not cache edits.
