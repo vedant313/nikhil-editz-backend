@@ -8,7 +8,8 @@ const rateLimit = require("express-rate-limit");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
-const configuredOrigins = (process.env.FRONTEND_ORIGINS || "").split(",").map(value => value.trim()).filter(Boolean);
+const normalizeOrigin = value => String(value || "").trim().replace(/\\/$/, "").toLowerCase();
+const configuredOrigins = (process.env.FRONTEND_ORIGINS || "").split(",").map(normalizeOrigin).filter(Boolean);
 const allowedOrigins = new Set([
   ...configuredOrigins,
   "https://nikhileditz.nexsatechnologies.com",
@@ -20,7 +21,7 @@ app.use(cors({
     // Preserve the original working behavior: when FRONTEND_ORIGINS is not
     // configured, do not block the portfolio origin. Write routes remain protected
     // by the admin JWT. When an allowlist is configured, enforce it strictly.
-    if (!origin || configuredOrigins.length === 0 || allowedOrigins.has(origin)) return callback(null, true);
+    if (!origin || configuredOrigins.length === 0 || allowedOrigins.has(normalizeOrigin(origin))) return callback(null, true);
     return callback(new Error("Origin not allowed by CORS"));
   },
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
@@ -37,7 +38,7 @@ const ContentSchema = new mongoose.Schema({
 }, { versionKey: false });
 const Content = mongoose.model("SiteContent", ContentSchema);
 
-app.get("/api/health", (_req, res) => res.json({ ok: true, service: "nikhil-editz-cms-api" }));
+app.get("/api/health", (_req, res) => { const dbState = mongoose.connection.readyState; res.status(dbState === 1 ? 200 : 503).json({ ok: dbState === 1, service: "nikhil-editz-cms-api", database: dbState === 1 ? "connected" : "disconnected", dbState }); });
 
 function signToken() {
   return jwt.sign({ role: "admin" }, process.env.JWT_SECRET, { expiresIn: "12h" });
@@ -97,7 +98,7 @@ app.put("/api/site-content", requireAdmin, async (req, res) => {
       { upsert: true, new: true, setDefaultsOnInsert: true }
     ).lean();
     res.json({ ok: true, updatedAt: doc.updatedAt });
-  } catch (error) { res.status(500).json({ error: "Could not save site content." }); }
+  } catch (error) { console.error("CMS site-content save failed:", error); res.status(500).json({ error: "Could not save site content." }); }
 });
 
 app.put("/api/site-content/edits", requireAdmin, async (req, res) => {
@@ -113,7 +114,7 @@ app.put("/api/site-content/edits", requireAdmin, async (req, res) => {
     if (Array.isArray(deletedElements)) data.deletedElements = [...new Set(deletedElements.filter(x => typeof x === "string"))];
     await Content.findOneAndUpdate({ key: "main" }, { $set: { data, updatedAt: new Date() } }, { upsert: true, new: true });
     res.json({ ok: true });
-  } catch (error) { res.status(500).json({ error: "Could not save text edits." }); }
+  } catch (error) { console.error("CMS text/layout save failed:", error); res.status(500).json({ error: "Could not save text edits." }); }
 });
 
 app.use((error, _req, res, _next) => {
