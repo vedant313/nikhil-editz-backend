@@ -69,8 +69,11 @@ app.get("/api/site-content", async (_req, res) => {
 
 app.put("/api/site-content", requireAdmin, async (req, res) => {
   try {
-    const data = req.body || {};
-    if (typeof data !== "object" || Array.isArray(data)) return res.status(400).json({ error: "Invalid content payload." });
+    const incoming = req.body || {};
+    if (typeof incoming !== "object" || Array.isArray(incoming)) return res.status(400).json({ error: "Invalid content payload." });
+    // Merge partial CMS writes with existing data so one feature cannot reset unrelated saved content.
+    const existingDoc = await Content.findOne({ key: "main" }).lean();
+    const data = { ...(existingDoc?.data || {}), ...incoming };
     const safeData = {
       edits: data.edits && typeof data.edits === "object" ? data.edits : {},
       hiddenSections: Array.isArray(data.hiddenSections) ? data.hiddenSections.filter(x => typeof x === "string") : [],
